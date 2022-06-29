@@ -40,9 +40,34 @@ db.connect( (err) => {
     if(err)
         console.log(err)
     else{
+
+        let sql = "CREATE DATABASE IF NOT EXISTS nodejs_login;"
+        
+        db.query(sql, (err, res) => {
+            if(err) throw err;
+        })
+
+        sql = "USE nodejs_login"
+        db.query(sql, (err,res) =>{
+            if(err) throw err;
+        })
+
+        sql = "SHOW TABLES LIKE 'user';"
+            db.query(sql, (err, res) => {
+                if (err) throw err;
+                if(res.length > 0) return console.log('table existed');
+
+                sql = 'CREATE TABLE \`user\` (\`id\` int AUTO_INCREMENT,email varchar(255),\`password\` varchar(255),name varchar(255),PRIMARY KEY(\`id\`));'
+                db.query(sql, (err,res) =>{
+                    if(err) throw err;
+                })
+            })
+
         console.log("Mysql connected...")
     }
 })
+
+
 
 // app.engine(
 //     'hbs',
@@ -69,7 +94,7 @@ app.get('/product', (req,res,next) => {
         }))
     }
 
-    res.render("sanpham.ejs")
+    res.render("sanpham.ejs",{user: req.session.user})
 })
 
 app.get('/register', (req, res, next) => {
@@ -88,6 +113,10 @@ app.post('/register', (req, res, next) => {
     const email = req.body.email
     const password = req.body.password
     const passwordRep = req.body.passwordrepeat
+
+//     db.query('USE nodejs_login', (err,res) => {
+//     if(err) throw err;
+// } )
 
     let sql = `SELECT * FROM user WHERE email = \'${email}\';`
     db.query(sql, (err, result) => {
@@ -126,6 +155,11 @@ app.post('/register', (req, res, next) => {
                 console.log(err)
             }
 
+            db.query('SELECT * FROM user; ', (err,res) => {
+                if(err) throw err;
+                console.log(res)
+            })
+
             return res.redirect(url.format({
                 pathname: '/login',
                 query: {
@@ -151,6 +185,11 @@ app.get('/login', (req, res, next) => {
 app.post('/login', (req, res,next) => {
     // res.json(req.body)
     // console.log(req.params)
+
+//     db.query('USE nodejs_login', (err,res) => {
+//     if(err) throw err;
+// } )
+
     const email = req.body.email;
     const password = req.body.psw;
     const sql = `SELECT * FROM user WHERE email = \'${email}\' AND password = \'${password}\';`;
